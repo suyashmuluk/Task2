@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Covid Data</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
+            background-color: #efefef;
+        }
+
+        .nav {
+            background-color: #fff;
+            box-shadow: 0 0 5px #8f8f8f;
+            height: 50px;
+            position: fixed;
+            inset: 0 0 auto 0;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .nav__title {
+            font-size: 30px;
+            font-weight: bold;
+            padding: 0 7.32vw;
+        }
+
+        .outer {
+            padding: 60px 7.32vw;
+        }
+
+        .table__container {
+            margin-top: 10px;
+            width: 100%;
+            height: 420px;
+            overflow: auto;
+        }
+
+        .card__container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card {
+            display: inline-flex;
+            background-color: #fff;
+            padding: 20px;
+            align-items: center;
+            column-gap: 8px;
+            box-shadow: 0px 14px 28px 0px rgb(0 0 0 / 4%);
+            border-radius: 4px;
+        }
+
+        .card__title {
+            font-size: 18px;
+        }
+
+        .card__info {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: center;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: darkslategray;
+            color: #fff;
+        }
+
+        .table__row:nth-child(odd) {
+            background-color: #fff;
+        }
+
+        .table__row:nth-child(even) {
+            background-color: #d7d7d7;
+        }
+
+        .table__header_data {
+            padding: 8px;
+        }
+
+        .table__row_data {
+            padding: 8px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="nav__title">Covid Data</div>
+    </nav>
+    <div class="outer">
+        <div class="card__container">
+            <div class="card">
+                <span class="card__title">Total No. of Results: </span>
+                <span class="card__info" id="card__info"></span>
+            </div>
+
+            <div class="card">
+                <span class="card__title">Total No. of Cases: </span>
+                <span class="card__info" id="cases__info"></span>
+            </div>
+        </div>
+        <div class="table__container">
+            <table class="table">
+                <thead>
+                    <tr class="table__header">
+                        <th>
+                            <div class="table__header_data">Country</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">Country Code</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">Province</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">City</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">City Code</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">Lat</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">Lon</div>
+                        </th>
+
+                        <th>
+                            <div class="table__header_data">Cases</div>
+                        </th>
+
+                        <th>
+                            <div class="table__header_data">Status</div>
+                        </th>
+                        <th>
+                            <div class="table__header_data">Date</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function getData() {
+            let title = document.getElementById('card__info');
+            let cases_info = document.getElementById('cases__info');
+            title.innerText = 0;
+            cases_info.innerText = 0;
+            fetch('https://api.covid19api.com/country/south-africa/status/confirmed')
+                .then(response => response.json())
+                .then(data => {
+                    title.innerText = data.length;
+                    buidTable(data);
+                    countCases(data, cases_info);
+                }).catch(error => {
+                    alert("error in fetching data");
+                });
+        }
+
+        function buidTable(data) {
+            let data_rows = data;
+            let tbody = document.getElementById('tbody');
+
+            data_rows.forEach(row => {
+                let tableRow = document.createElement("tr");
+
+                for (let i in row) {
+                    let tableData = document.createElement("td");
+                    let data_div = document.createElement("div");
+                    data_div.classList.add('table__row_data');
+                    data_div.innerText = getRowData(row, i);
+                    tableData.append(data_div);
+                    tableRow.append(tableData);
+                }
+                tableRow.classList.add('table__row');
+                tbody.append(tableRow);
+            });
+        }
+
+        function getRowData(data, key) {
+            if (key === 'Date') {
+                let date = new Date(data[key]);
+                return date.getDate() + "-" + (date.getMonth() < 9 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1)) + "-" + date.getFullYear();
+            } else if (key === 'Cases') {
+                return data[key]
+            } else {
+                return data[key] ? data[key] : 'N/A';
+            }
+        }
+
+        function countCases(data, element) {
+            const cases = data.reduce((acc, current) => {
+                return acc + current.Cases
+            }, 0);
+            element.innerText = cases;
+        }
+
+        getData();
+    </script>
+</body>
+
+</html>
